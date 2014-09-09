@@ -1,0 +1,150 @@
+---
+title: "First section handout"
+output: pdf_document
+---
+
+# Agenda
+
+1. Agenda, welcome, introductions
+2. R
+    a) Housekeeping (projects, markdown)
+    b) Histograms
+3. Concept review
+    a) Matrix algebra
+    b) Manual inverse
+    c) Variance and expectation (algebraic rules)
+4. Terms this week
+    a) Target population, sampling frame, study units
+  
+# R
+
+## Housekeeping
+This document is written in R markdown, and is associated with an R project folder. Data will be kept in data.tables, which is an improved version of the built-in data frame structure,  and the graphics I'll be teaching you use ggplot2, which is the definitive graphics package for r. All of these things are probably overkill for this class; that is, you can certainly get by without using them, and they are not in any way required for the class. Still, they're good practices, and they're actually quite simple to figure out. I find that, even during the learning curve, they can make your life simpler on the whole, not more complex; so in my sections, I'll use all four.
+
+R Markdown is a simple formatting syntax for authoring documents, which you can then export in various formats (PDF, Word, HTML, etc.) You can include R code, and have the R output automatically become part of the document. The formatting is similar to what you see on Wikipedia -- that is, simple, memorable ways of typing in headers, *italics*, **bold**, etc. You can also include LaTeX equations. R markdown is included in RStudio by default. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+An R project is just a standard way of structuring your directories. It lets you create R code without hard-coded file paths, so you can move the project directory without breaking your code. It also helps you have good structure from the start, so you avoid file names like "HW1.FINAL.with.extra.corrections.for.printing.v2.pdf". On my computer, I've put this simple project structure in a folder called 139, and it has just 3 parts:
+
+  139/139.rproj : This is the project root file, created by choosing "new project" in RStudio
+  139/data/ : This is the data folder, where I put all the raw data files. You should never include processed data files here, and if you download a new version of a data file, you should give it a version number, and not delete the old version.
+  139/markdown/ : This is where I put the markdown files like this one.
+  
+As for data.table and ggplot2, these are packages by Hadley Wickham, an awesome R programmer who descends into the depths of the language, fights the balrogs there so you don't have to, and emerges with shining gems for you to use. To get them installed and use them on your machine, you say:
+  
+```{r}
+#make sure you've run:
+  #install.packages(c("ggplot2","data.table")) 
+#...once
+library("ggplot2")
+library("data.table")
+```
+
+## Histograms and Boxplots
+
+**Problem 1**: Science Magazine news article, “Drinking Too Much? Blame Your Glass,” [^1] reports that social drinkers tend to consume beer faster if it is served in a curved or conical glass, as opposed to a glass with straight, vertical sides. The researchers posited that social beer drinkers have a harder time pacing themselves when using fluted glasses because it’s harder to judge fluid volume in curved glasses. We don’t have the actual data from the study, but we have some pretend data in beer.csv. Those in group 1 (glass.shape=1) received a curved glass; those in group 0 (glass.shape=0) received a vertical glass.
+
+[^1]: http://news.sciencemag.org/2012/08/drinking-too-much-blame-your-glass
+
+A. Fix the R code below so that it displays side-by-side histograms of the time to finish a glass, with your (explicit) choice of colors and labels.
+
+```{r, echo=FALSE}
+beer = fread("../data/beerdat.csv")
+ggplot(beer, aes(time)) + geom_histogram()
+```
+
+(Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.)
+
+B. Now do the same with a box-plot. 
+
+```{r, echo=FALSE}
+#your code here
+```
+
+# Review material
+
+## Matrix algebra
+**Problem 2**
+Say you have the equation $A^{-1}X = YB$ , and you know A and B are invertible 2 x 2 square matrices.
+
+a) Solve for $X$
+<br>
+<br>
+<br>
+
+
+
+b) What do we know about the dimensions of $X$ and $Y$?
+<br>
+<br>
+<br>
+
+
+## Manual inverse
+There are various algorithms for finding the inverse of a matrix. To be honest, you'll almost never do this by hand, except on the occasional review homework like this one. When you do have to do it, probably the easiest algorithm to remember is the "row algebra on a double-wide matrix" trick. That is, to find the inverse of $A$, use row operations to convert $(A I_n)$ to $(I_n A^{-1})$.
+
+**Problem 3**: Find the inverse of $\begin{bmatrix} 2 & 1 & 1 \\ -5 & -3 & 0 \\ 1 & 1 & -1 \end{bmatrix}$.
+
+## Variance and expectation
+**Problem 4**
+Say that $A ~ [4,16]$, and $B ~ [5,9]$.
+
+a) What are the mean and variance of the distribution of $A + B$ and $A - B$ if A and B are independent?
+<br>
+<br>
+<br>
+
+
+
+b) What if they are not independent, but uncorrelated? Do we know the mean and/or variance of the sum and difference then?
+<br>
+<br>
+<br>
+
+
+
+c) What if they have a correlation of 1?
+<br>
+<br>
+<br>
+
+
+
+d) What if they have a correlation of -1?
+<br>
+<br>
+<br>
+
+
+## Target population, sampling frame, study units
+
+**Problem 4**
+Does spending money on others increase one’s happiness? In a study conducted by 
+Elizabeth Dunn, Daniel Gilbert, and Timothy Wilson, published in the Journal of Consumer Psychology (2011) [^2], researchers approached individuals on the University of British Columbia (UBC) campus, handed them a $20 bill, then randomly assigned them to spend the money either on themselves or on others by the end of the day. When participants were contacted that evening, individuals who had been assigned to spend the $20 on others reported being happier than those who had been assigned to spend the money on themselves.
+
+[^2]: http://www.wjh.harvard.edu/~dtg/DUNN%20GILBERT%20&%20WILSON%20%282011%29.pdf
+
+
+a) What are the experimental units? 
+<br>
+<br>
+<br>
+
+b) What is the target population?
+<br>
+<br>
+<br>
+
+c) What is the sampling frame? Does it undercover and/or overcover the target population?
+<br>
+<br>
+<br>
+
+d) Is this a randomized experiment or an observational study?
+<br>
+<br>
+<br>
+
+e) Where does this study fall in Display 1.5? Do you agree with the study’s conclusion?
+<br>
+<br>
+<br>
