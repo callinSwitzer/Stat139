@@ -2,10 +2,10 @@
 title: "Assignment 1"
 author: "Callin Switzer"
 date: "September 8, 2014"
-output: html_document
+output: pdf_document
 ---
 
-```{r setup, results='hide', echo =FALSE}
+```{r setup, results='hide', echo =FALSE, message=F}
 # function to load required packages
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -13,16 +13,11 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-packages <- c("ggplot2", "data.table")
+packages <- c("ggplot2", "data.table", "xtable")
 ipak(packages); rm(ipak); rm(packages)
 
 ```
 
-normal
-
-**bold**
-
-*italic*
 
 1. (Not Graded) Complete the following Conceptual Exercises in Chapter 1 (2nd or 3rd edition
 of R&S): 2, 7, 9. Feel free to include your answers in the write-up. However, this question will
@@ -35,18 +30,18 @@ undercoverage or overcoverage. Finally, specify what type of sampling was used.
      each location, looks at the book that resides at that spot, and records whether the book
      needs rebinding or not.
           
-          <font style="background-color: yellow;">
-               * Study units = books in the library <br>
-               * Target population = all the books in the library <br>
-               * Sampling frame = all the books in the library <br>
-               * Selection Bias: Undercoverage could occur if books were checked out or misplaced
-               , and the librarian was unable to find them on the shelves.  Overcoverage could occur
-               if the librarian found books that were not supposed to be in the libary -- for 
-               example, someone could have returned a book to the library that didn't belong 
-               to the library. <br>
-               * Sampling = simple random sample
+         
+          * Study units = books in the library 
+          * Target population = all the books in the library 
+          * Sampling frame = all the books in the library 
+          * Selection Bias: Undercoverage could occur if books were checked out or misplaced
+          , and the librarian was unable to find them on the shelves.  Overcoverage could occur
+          if the librarian found books that were not supposed to be in the libary -- for 
+          example, someone could have returned a book to the library that didn't belong 
+          to the library. 
+          * Sampling = simple random sample
           
-          </font>
+          
 
 
      (b) (10 points) The Arizona Intrastate Travel Committee commissioned a study to identify
@@ -56,47 +51,57 @@ undercoverage or overcoverage. Finally, specify what type of sampling was used.
      area codes were generated randomly so that listed and unlisted telephone numbers could
      be reached. (Arizona Office of Tourism, 1991.)
           
-          <font style="background-color: yellow;">
-               * Study units = residents of major Phoenix and Tucson with phone numbers in those area codes <br>
-               * Target population = all the road-users in the major metropolitan cities <br>
-               * Sampling frame = all the people with a landline in Phoenix and Tucson <br>
-               * Selection bias: Undercoverage could occur if people lived in Phoenix or Tucson 
-               and didn't have a landline phone, or didn't answer their phone.  Overcoverage could
-               occur if someone who wasn't a resident of a major metropolitan area answered the phone -- 
-               for example, someone could have holiday home in a major city, and not live there for most 
-               of the year. <br>
-               * Sampling = simple random sample
-          </font>
+         
+          * Study units = residents of major Phoenix and Tucson with phone numbers in 
+          those area codes 
+          * Target population = all the road-users in the major metropolitan cities 
+          * Sampling frame = all the people with a landline in Phoenix and Tucson 
+          * Selection bias: Undercoverage could occur if people lived in Phoenix or Tucson 
+          and didn't have a landline phone, or didn't answer their phone.  Overcoverage could
+          occur if someone who wasn't a resident of a major metropolitan area answered the phone -- 
+          for example, someone could have holiday home in a major city, and not live there for most 
+          of the year. 
+          * Sampling = simple random sample 
+          
 
 3. (5 points) Consider two securities, the first having expected return µ1 = 1 and standard
-deviation σ1 = 0.1, and the second having µ2 = 0.8 and σ = 0.12. Also, let the correlation
-between securities be ρ = 0.1. Suppose you invest π = 0.8, or 80%, of your money in the first
-security and 1-π in the second security. What is your expected return and what is the standard
+deviation [sigma]1 = 0.1, and the second having µ2 = 0.8 and [sigma] = 0.12. Also, let the correlation
+between securities be [rho] = 0.1. Suppose you invest [pi] = 0.8, or 80%, of your money in the first
+security and 1-[pi] in the second security. What is your expected return and what is the standard
 deviation of your return?
 
-```{r, results = 'hide', echo = F}
+```{r, results = 'hide', echo =FALSE}
 mo <- 0.8*(1) + 0.2*(0.8)
 va <- sqrt(0.8) * 0.1^2 + sqrt(0.2) * 0.12^2 + 2 * 0.8 * 0.2 * 0.1 * sqrt(0.1 + 0.12)
 ```
 
-     <font style="background-color: yellow;">
-          E(X)      = π(X1) + (1-π)(X2) <br>
-                    = 0.8(1) + 0.2(0.8) <br> 
-                    = `r I(mo)` is the expected return <br> </font>
+E(X)      = [pi](X1) + (1-[pi])(X2) 
+          = 0.8(1) + 0.2(0.8)  
+          = `r I(mo)` is the expected return  
      
-     <font style="background-color: yellow;">         
-     Var(X)    = sqrt(π) * Var(X1) + sqrt(1-π) * Var(X2) + 2 * π * (1-π) Cov(X1,X2) <br>
-               = sqrt(0.8) * 0.1^2 + sqrt(0.2) * 0.12^2 + 2 * 0.8 * 0.2 * 0.1 * sqrt(0.1 + 0.12) <br>
-               = `r va` is the standard deviation of the return<br>   
-     </font>
+Var(X)    = sqrt([pi]) * Var(X1) + sqrt(1-[pi]) * Var(X2) + 2 * [pi] * (1-[pi]) Cov(X1,X2) 
+          = sqrt(0.8) * 0.1^2 + sqrt(0.2) * 0.12^2 + 2 * 0.8 * 0.2 * 0.1 * sqrt(0.1 + 0.12) 
+          = `r va` is the standard deviation of the return   
+     
 
 4.  (10 points) Solve the following equations for the matrix X. You can assume that the matrices
 A and B (when needed) are all invertible n x n matrices.
 (a) AXB = C
+
+     X = A^-1 * C * B^-1
+
 (b) (AX) + B = D
-(c) Solve equation (b) for X by hand if
+
+ 
+     AX = D - B 
+  
+     X = A^-1 * (D-B)
 
 
+(c) Solve equation (b) for X by hand 
+
+
+     *See work by hand attached on other paper*
 
 
 
@@ -106,10 +111,10 @@ A and B (when needed) are all invertible n x n matrices.
 
 5.  (15 points) The csdata.txt data set on the course web-site contains information on 224
 computer science students. Use R to perform the following tasks:
-     (a) Split the students into two groups with GPA < 3 and GPA ≥ 3 and provide the following
+     (a) Split the students into two groups with GPA < 3 and GPA >= 3 and provide the following
      numerical summaries of the distributions of SAT Math (SATM) scores for each of the two
      groups: sample mean, sample SD, min, median, max, 1st and 3rd quartiles.
-```{r split and summarize, results='hold'}
+```{r split and summarize, echo =F}
 # import data
 stud <- read.table("data/CSDATA.txt", header = T)
 stud$gpaGroup <- ifelse(stud$GPA > 3, yes = "High", no = "Low")
@@ -128,21 +133,24 @@ mysum <- function(vector) {
      return(s)
 }
 ```
-<font style="background-color: yellow;"> 
-Summary for high-gpa students
-```{r, echo = F}
-mysum(high$SATM)
+
+
+```{r, echo = T, results = "asis", echo =F}
+options(xtable.comment = FALSE)
+high <-data.frame(value = mysum(high$SATM))
+print(xtable(high,align = c("l", "r"), caption = " Summary for high-gpa students"), type = "latex")
 ```
 
-<font style="background-color: yellow;"> Summary for low-gpa students
-```{r, echo = F}
-mysum(low$SATM)
+
+```{r, echo = T, results = "asis", echo =F}
+low <-data.frame(value = mysum(low$SATM))
+print(xtable(low,align = c("l", "r"), caption = " Summary for low-gpa students"), type = "latex")
 ```
 
 (b) Plot histograms and box-plots of SATM scores for both groups side-by-side and describe
 the shapes of their distributions. Are there any visible differences?
 
-```{r hist, results = "hold", echo = F, fig.width= 6, fig.height=4}
+```{r hist, results = "hold", echo =FALSE}
 stud$gpaGroup <- factor(stud$gpaGroup)
 
 ggplot(stud) + 
@@ -162,20 +170,132 @@ ggplot(stud, aes(x = gpaGroup, y = SATM)) +
      labs(x = "GPA Group", y ="SAT Maths Score")
 ```
 
-<font style="background-color: yellow;"> Both distributions seem to be fairly normally distributed. They both have similar variances and neither seems especially skewed.
+ Both distributions seem to be fairly normally distributed. They both have similar variances and neither seems especially skewed.
 There are more poeple in the low-gpa group, as evidenced by the taller histogram.  The distribution
-of SATM scores from the high-gpa group has a slightly higher mean than the low-gpa group. </font>
+of SATM scores from the high-gpa group has a slightly higher mean than the low-gpa group. 
 
 (c) Comment on whether you think the group means are very different or not (without con- ducting any formal tests).
-<font style="background-color: yellow;"> The sample group means differ by about 40 points. This is quite a large difference -- I suspect that it's highly unlikely to find that large of a difference if the sample was random.  Thus, I think the group means are different. </font>
+ 
+     *The sample group means differ by about 40 points. This is quite a large difference -- I suspect that it's highly unlikely to find that large of a difference if the sample was random.  Thus, I think the group means are different.* 
 
 (d) Calculate the overall median SATM score in the sample and interpret it.
-```{r median, echo = FALSE}
+```{r median, echo =FALSE}
 mm <- median(stud$SATM)
 ```
-<font style="background-color: yellow;">
-The overall median SATM score is `r mm`, which is basically right in the middle of two groups. Since the data are distributed fairly normally, the median is quite close to the mean.  The median is the score that 50% of the other scores fall below, and 50% fall above. </font>
+
+     *The overall median SATM score is `r mm`, which is basically right in the middle of two groups. Since the data are distributed fairly normally, the median is quite close to the mean.  The median is the score that 50% of the other scores fall below, and 50% fall above.* 
 
 
 
 (e) SAT is calibrated such that scores in the entire student population are distributed approx- imately normally with mean 500 and standard deviation 110. Identifying what fraction of student population is expected to score above the sample median found in the previous part? (Hint: use the R command pnorm() to find normal probabilities.) Are your findings consistent with an assertion that CS students have stronger math skills?
+
+```{r standard, cache = T, echo =FALSE}
+# pnorm usage
+pn <- 1-pnorm(mean = 500, sd = 110, q = mm)
+```
+
+     *`r pn` is the fraction of the student population  expected to score over the median score of `r mm` for CS majors.  This is consistent with the assertion that CS students have stronger math skills.*
+
+## CODE
+
+
+```{r, eval = F}
+###########################
+## SETUP
+###########################
+# function to load required packages
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if(length(new.pkg)) install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+packages <- c("ggplot2", "data.table", "xtable")
+ipak(packages); rm(ipak); rm(packages)
+
+```
+
+
+
+```{r, echo = T, eval = F}
+###########################
+## Q3
+###########################
+mo <- 0.8*(1) + 0.2*(0.8) # mean
+va <- sqrt(0.8) * 0.1^2 + sqrt(0.2) * 0.12^2 + 2 * 0.8 * 0.2 * 0.1 * sqrt(0.1 + 0.12) # variance
+```
+
+
+
+
+
+
+```{r, eval = F}
+###########################
+## Q5
+###########################
+
+# import data
+stud <- read.table("data/CSDATA.txt", header = T)
+stud$gpaGroup <- ifelse(stud$GPA > 3, yes = "High", no = "Low")
+
+# split into low and high
+high <- stud[stud$gpaGroup == "High", ]
+low <- stud[ stud$gpaGroup == "Low",]
+
+# custom summary function to include sd
+mysum <- function(vector) {
+     s <- numeric(7)
+     names(s) <- c("sample mean", "sample SD", "min", "median", 
+                   "max", "1st quartile","3rd quartile") 
+     s[c(1,3,4,5,6,7)] <- summary(vector)[c(4, 1, 3, 6, 2, 5)]
+     s[2] <- round(sd(vector), digits = 1)
+     return(s)
+}
+```
+
+
+```{r, eval = F}
+options(xtable.comment = FALSE)
+mysum(high$SATM)
+high <-data.frame(value = mysum(high$SATM))
+print(xtable(high,align = c("l", "r"), caption = " Summary for high-gpa students"), type = "latex")
+```
+
+
+```{r, eval = F}
+low <-data.frame(value = mysum(low$SATM))
+print(xtable(low,align = c("l", "r"), caption = " Summary for low-gpa students"), type = "latex")
+```
+
+
+```{r,  eval = F}
+stud$gpaGroup <- factor(stud$gpaGroup)
+
+ggplot(stud) + 
+     geom_histogram(aes(SATM, fill = gpaGroup), binwidth = 50, color = "grey40") +
+     theme_bw() +
+     facet_wrap(~gpaGroup) + 
+     theme(legend.position = "none") +  
+     ggtitle("SAT Math scores for high and low gpa students") + 
+     labs(x = "SAT Math Scores")
+
+
+ggplot(stud, aes(x = gpaGroup, y = SATM)) +
+     geom_boxplot(aes(fill = gpaGroup), color = "grey40") + 
+     theme_bw() +
+     theme(legend.position = "none") + 
+     ggtitle("Boxplot of SAT Math scores for low and high gpa students")+ 
+     labs(x = "GPA Group", y ="SAT Maths Score")
+```
+
+
+```{r, eval = F}
+mm <- median(stud$SATM)
+```
+
+
+```{r, eval = F}
+# pnorm usage
+pn <- 1-pnorm(mean = 500, sd = 110, q = mm)
+```
