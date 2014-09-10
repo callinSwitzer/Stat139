@@ -17,7 +17,7 @@ packages <- c("ggplot2", "data.table", "xtable")
 ipak(packages); rm(ipak); rm(packages)
 
 ```
-
+svdsdvsdvsdvs
 
 1. (Not Graded) Complete the following Conceptual Exercises in Chapter 1 (2nd or 3rd edition
 of R&S): 2, 7, 9. Feel free to include your answers in the write-up. However, this question will
