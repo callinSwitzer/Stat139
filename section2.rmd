@@ -1,0 +1,54 @@
+---
+title: "section2"
+author: "Callin Switzer"
+date: "September 15, 2014"
+output: html_document
+---
+choose(6,3)
+```{r}
+w = c(1,1,1,0,0,0)
+y = c(55, 72, 72.7, 70.0, 66, 78.9)
+
+
+testStat <- function (w, y) {
+     value <- mean(y[w == 1]) - mean(y[w == 0])
+     return (value)
+}
+
+testStat(w,y)
+
+dat = data.frame(w,y)
+dat
+nsim = 100000
+means = numeric(nsim)
+
+
+# loop for sampling
+for (i in 1:nsim){
+     foo = sample(y,3, replace = F)
+     bar = y[!(y %in% foo)]
+     means[i] <- mean(foo) - mean(bar)
+}
+
+hist(means, breaks  = 5)
+abline(v = testStat(w,y), col = "red")
+
+oneSide <- length(means[means <= testStat(w,y)]) / nsim ## how did they get a p-value of 0.6?
+secondSide <- length(means[means >= -testStat(w,y)]) / nsim
+
+pValue <- oneSide + secondSide # two-sided pvalue
+pValue
+
+## function for sampling
+sampleMeanDiff <- function(data, numTreated, dummy){
+     treated = sample(1:length(data), numTreated)
+     return(mean(data[treated]) - mean(data[-treated]))  
+}
+
+# Vectorize allows you to input a vector into a function! This is pretty handy!
+vectorMeanDiffs <- Vectorize(sampleMeanDiff, vectorize.args = "dummy")
+diffs <- vectorMeanDiffs(data = y, numTreated = 3, dummy = 1:10000)
+
+hist(diffs)
+
+```

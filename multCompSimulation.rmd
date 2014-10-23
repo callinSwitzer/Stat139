@@ -1,0 +1,31 @@
+---
+title: "multiple comparisons simulation"
+author: "Callin Switzer"
+date: "October 20, 2014"
+output: html_document
+---
+
+```{r}
+doubleT <- function(o){
+     t1 <- t.test(rnorm(100), rnorm(100))$p.value
+     t2 <- t.test(rnorm(100), rnorm(100))$p.value
+     if(t1 < 0.05 | t2 < 0.05){return(TRUE)}
+     else return(FALSE)
+}
+
+tt <- replicate(10000, doubleT())
+sum(tt)/10000
+
+1 - (1-0.05)^2
+
+
+install.packages("asbio")
+library(asbio)
+
+install.packages("tcltk")
+library("tcltk")
+capabilities("tcltk")
+capabilities("X11")
+?capabilities()
+
+```

@@ -1,0 +1,32 @@
+---
+title: "section5 S139"
+author: "Callin Switzer"
+date: "October 8, 2014"
+output: html_document
+---
+
+```{r}
+library(pwr)
+library(BSDA)
+
+# power for one-sided t-test
+pwr.t.test(25, d = 0.5, sig.level = 0.048, alternative = "greater", type = "one.sample")
+
+
+## simulation
+
+qnorm(0.2, 0.5, 1/5)
+1-pnorm(.337, sd = 1/5)
+
+## simulation
+
+tSim <- function(o) {
+     # power for one-sided z-test
+     z.test( rnorm(25, mean = 0.5), sigma.x = 1, sigma.y = 1, alternative = "greater")$p.value
+}
+
+ff <- replicate(10000, tSim())
+hist(ff)
+sum(ff < 0.048)/10000
+
+```

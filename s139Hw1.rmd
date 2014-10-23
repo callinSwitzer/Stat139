@@ -1,0 +1,8 @@
+---
+title: "STAT 139 Assigmnent 1"
+author: "Callin Switzer"
+date: "September 8, 2014"
+output: html_document
+---
+
+Chapter 1: 2, 7, 9
