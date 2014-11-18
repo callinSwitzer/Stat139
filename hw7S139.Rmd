@@ -1,0 +1,88 @@
+---
+title: "Hw7 Stat 139"
+author: "Callin Switzer"
+date: "October 28, 2014"
+output: pdf_document
+---
+
+```{r, results = "asis", echo = F, warning=F, message = F}
+options(xtable.comment = FALSE)
+births <- read.csv("data/ex0724.csv")
+
+countries <- colnames(births)[2:5]
+
+mods <- lapply(countries, function(x) summary(lm(births[[x]] ~ births$Year)))
+
+names(mods) <- countries
+
+
+require(xtable)
+x <- "Denmark"
+
+foo <- lm(births[[x]]~births$Year)
+sigmaHat <- sqrt(sum((foo$residuals)^2)/length(foo$residuals))
+#summary(foo)
+#print(xtable(foo))
+```
+
+# #2 (#26a)
+Below are the tables for the linear regression for each country.  I've also calculatedd the $\hat{\sigma}$ (sigmaHat) for each country and printed it under its respective table.  The values are all the same as Diaplay 7.17 in the book
+
+
+```{r, results = "asis", echo = F}
+options("scipen"=10, "digits"=4)
+for(i in 1:4){
+     sigmaHat <-  sqrt(sum((mods[[i]]$residuals)^2)/(length(mods[[i]]$residuals) - 2))
+     sigmaHat <- round(sigmaHat, digits = 5)
+     capt = (paste("sigmaHat =", sigmaHat, "for", countries[i]))
+     print(xtable(mods[[i]], digits = c(10, 10, 10, 10, 10),  
+                  caption = capt), floating = F)
+     print(paste(capt))
+}
+```
+
+# 26b
+The t-statistics are shown in the tables above. There is evidence that the proportion of male birth is truly declining.  The p-values are highly significant for Netherlands, Candada, and USA, and somewhat significant for Denmark.
+
+
+# 26c
+The t-statistic is the ratio of the coefficient estimates to their standard errors.  The US can have an extreme t-statistic because the standard error is very small, relative to the estimate.  This makes the t-statistic more extreme.
+
+
+
+
+# 26d
+The standard error for the estimated slope is smaller in the US than Canada because the points fall closer to the line. Standard error of $\beta_1$ depends on $\hat{\sigma}$, which becomes larger when the sum of squared residuals gets larger. The SE($\beta_1$) also depends on the sample variance of the x-values, but those should be the same, since the US and Canada were sampled during the same years. 
+
+
+
+# Code
+```{r, eval = F}
+options(xtable.comment = FALSE)
+births <- read.csv("data/ex0724.csv")
+
+countries <- colnames(births)[2:5]
+
+mods <- lapply(countries, function(x) summary(lm(births[[x]] ~ births$Year)))
+
+names(mods) <- countries
+
+
+require(xtable)
+x <- "Denmark"
+
+foo <- lm(births[[x]]~births$Year)
+sigmaHat <- sqrt(sum((foo$residuals)^2)/length(foo$residuals))
+#summary(foo)
+#print(xtable(foo))
+
+options("scipen"=10, "digits"=4)
+for(i in 1:4){
+     sigmaHat <-  sqrt(sum((mods[[i]]$residuals)^2)/(length(mods[[i]]$residuals) - 2))
+     sigmaHat <- round(sigmaHat, digits = 5)
+     capt = (paste("sigmaHat =", sigmaHat, "for", countries[i]))
+     print(xtable(mods[[i]], digits = c(10, 10, 10, 10, 10),  
+                  caption = capt), floating = F)
+     print(paste(capt))
+}
+```

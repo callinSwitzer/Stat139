@@ -152,20 +152,36 @@ I found evidence that at least one group mean is different from the others.  To 
 \newpage
 
 ```{r, fig.height = 3.5, echo = F}
-TukeyHSD(mod23)
-
+gw <- TukeyHSD(mod23)
+gw
 par(mai = c(1,3,1,1))
 plot(TukeyHSD(mod23), las = 2)
 ```
 
 When I don't correct for multiple comparisons, I get this: 
 
-```{r, echo = F}
+```{r, echo = F, message = F}
 # pairwise t-test with pooled variances -- i.e. pairwise t-test for I samples.
-pairwise.t.test(lunch$WtLoss24, lunch$Group, p.adj = "none", pool.sd = T)
+# this method doesn't give confidence intervals
+#pairwise.t.test(lunch$WtLoss24, lunch$Group, p.adj = "none", pool.sd = T)
+
+
+# This gives same result as above, but it gives confidence intervals
+library(asbio)
+pa <- pairw.anova(lunch$WtLoss24, lunch$Group, method = "lsd"   )
+pa
+gw <- pairw.anova(lunch$WtLoss24, lunch$Group, method = "tukey"   )
+
 ```
 
-The p-values are slightly lower, but there is not a difference in which groups are significantly different from one another (i.e. the only two groups that are estimated to have significantly different means are low-fat and low-carbohydrate)
+\newpage
+Here are the unadjusted 95% confidence intervals (top) and adjusted confidence intervals (bottom), using the Tukey-Kramer Method:
+```{r, echo = F}
+pa$summary[3:4]
+gw$summary[2:3]
+```
+
+The p-values are slightly lower, but there is not a difference in which groups are significantly different from one another (i.e. the only two groups that are estimated to have significantly different means are low-fat and low-carbohydrate). Also, the confidence intervals from the Tukey-Kramer method are wider.
 
 
 In summary, I used the Tukey-Kramer procedure to compare all possible pairwise means.  From this test, I rejected the hypothesis that low-fat and low-carbohydrate diets have the same mean weight loss. I found evidence that low carbohydrate diets are estimated to have higher mean weight loss than low-fat diets.
