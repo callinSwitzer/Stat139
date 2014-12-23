@@ -100,11 +100,11 @@ Walk: The walking speed of pedestrians over 60 feet on a clear summer day in dow
 
 $\beta_0$ is the Estimate for the (Intercept).  This is the estimate for the mean Heart when Walk and Bank are both = 0.
 
-$\beta_1$ is the Estimate for Bank (from the table above).  This is the estimate for the mean change in Heart when Bank increases by one unit, when Walk = 0.  In other words, for each unit increase in Bank, we expect the mean of Heart to increase by 1.39 units, when Walk = 0. 
+$\beta_2$ is the Estimate for Bank (from the table above).  This is the estimate for the mean change in Heart when Bank increases by one unit, when holding Walk constant.  In other words, for each unit increase in Bank, we expect the mean of Heart to increase by 1.39 units, when Walk is contstant. 
 
-$\beta_2$ is the Estimate for Walk (from the table above).  This is the estimate for the mean change in Heart when Walk increases by one unit, while Bank = 0. In other words, we expect the mean of Heart to increase by $\beta_2$ units for every  increase in one unit in Walk, while Bank = 0. 
+$\beta_1$ is the Estimate for Walk (from the table above).  This is the estimate for the mean change in Heart when Walk increases by one unit, while accounting for Bank. In other words, we expect the mean of Heart to increase by $\beta_1$ units for every  increase in one unit in Walk, while Bank = 0. 
 
-$\beta_3$ is the Estimate for Bank:Walk (from the table above). This is the estimate interaction term to describe how the mean of Heart changes for different levels of Walk and Bank. For instance, if Bank = 1, then the slope of the regression line will be ($\beta_2$ + $\beta_3$) * Walk, and the intercept will be ($\beta_0$ + $\beta_1$). If Bank = 2, then the slope of the regression line will be ($\beta_2$ + $2 * \beta_3$) * Walk, and the intercept will be ($\beta_0$ + $2 * \beta_1$)
+$\beta_3$ is the Estimate for Bank:Walk (from the table above). This is the estimate interaction term to describe how the mean of Heart changes for different levels of Walk and Bank. For instance, if Bank = 1, then the slope of the regression line will be ($\beta_2$ + $\beta_3$) * Walk, and the intercept will be ($\beta_0$ + $\beta_2$). If Bank = 2, then the slope of the regression line will be ($\beta_2$ + $2 * \beta_3$) * Walk, and the intercept will be ($\beta_0$ + $2 * \beta_2$)
 
 
 (b)
@@ -129,18 +129,26 @@ Walk: The walking speed of pedestrians over 60 feet on a clear summer day in dow
 
 $\beta_0$ is the Estimate for the (Intercept).  This is the estimate for the mean Heart when Walk == mean(Walk) and Bank == mean(Bank).
 
-$\beta_1$ is the Estimate for Bank.Centered (from the table above).  This is the estimate for the mean change in Heart when Bank increases by one unit, when Walk == the mean of Walk.  In other words, for each unit increase in Bank, we expect the mean of Heart to increase by 0.29 units, when Walk = mean(Walk). 
+$\beta_2$ is the Estimate for Bank.Centered (from the table above).  This is the estimate for the mean change in Heart when Bank increases by one unit, when Walk == the mean of Walk.  In other words, for each unit increase in Bank, we expect the mean of Heart to increase by 0.29 units, when Walk = mean(Walk). 
 
-$\beta_2$ is the Estimate for Walk.Centered (from the table above).  This is the estimate for the mean change in Heart when Walk increases by one unit, while Bank = mean(Bank). In other words, we expect the mean of Heart to increase by $\beta_2$ units for every  increase in one unit in Walk, while Bank = mean(Bank).
+$\beta_1$ is the Estimate for Walk.Centered (from the table above).  This is the estimate for the mean change in Heart when Walk increases by one unit, while Bank = mean(Bank). In other words, we expect the mean of Heart to increase by $\beta_1$ units for every  increase in one unit in Walk, while Bank = mean(Bank).
 
-$\beta_3$ is the Estimate for the interaction of Bank.Centered*Walk.Centered. This term describes how the slope and intercept of Heart change as Bank.Centered and Walk.Centered both change away from their means. For instance, if Bank.Centered = 1, then the slope of the regression line will be ($\beta_2$ + $\beta_3$) * Walk.Centered, and the intercept will be ($\beta_0$ + $\beta_1$).
+$\beta_3$ is the Estimate for the interaction of Bank.Centered*Walk.Centered. This term describes how the slope and intercept of Heart change as Bank.Centered and Walk.Centered both change away from their means. For instance, if Bank.Centered = 1, then the slope of the regression line will be ($\beta_1$ + $\beta_3$) * Walk.Centered, and the intercept will be ($\beta_0$ + $\beta_2$).
 
 
 # #2c on hand-written page
 ```{r, eval = F, echo = FALSE}
 mean(pace$Walk)
 mean(pace$Bank)
--27.4291 + 1.3961*mean(pace$Walk) + 1.8487*mean(pace$Bank) + -0.0515*mean(pace$Walk)*mean(pace$Bank)
+-27.4291 + 1.8487*mean(pace$Walk) + 1.3961 *mean(pace$Bank) + -0.0515*mean(pace$Walk)*mean(pace$Bank)
+
+1.8487*mean(pace$Walk) - -0.0515*mean(pace$Walk)*mean(pace$Bank)
+
+-27.4291 +1.84*mean(pace$Walk) + 1.39 * mean(pace$Bank) + -0.0515*mean(pace$Walk)*mean(pace$Bank)
+
+1.8487 + -0.0515*mean(pace$Bank)
+
+1.39 + -0.0515*mean(pace$Walk)
 
 ```
 
@@ -155,7 +163,7 @@ The one-sided p-value when alternative is that size has a positive effect: `r pt
 This means that we don't have evidence to reject the hypothesis that lsize has no effect on number of species, when accounting for the number of days of observation.
 
 If the researchers tended to spend much more time observing in the larger reserves, that could indicate that they simply don't have enough power to reject the null hypothesis.  When interpreting the results, the researchers should be careful to mention that they didn't have enough evidence to reject the null hypothesis, but that the results may change if they had a more balanced sample from small and large reserves. 
-```{r, eval = F}
+```{r, eval = F, echo = F}
 stuff <- 2*pt(q = (0.0809 - 1)/.1131, df = 13, lower.tail = TRUE)
 round(stuff, 7)
 ```
@@ -167,10 +175,20 @@ round(stuff, 7)
 
 (d) 100 - 11.41 = 88.59% of variation in log number of species remains unexplained by log size and days of observations. 
 
-# *
-On the original scale, here is the interpretation: 
+* On the original scale, here are the interpretation of the coefficients.
+
+$\beta_0$ is the log of the number of butterflies when lsize = 0 and days = 0. On the original scale, this means that the number of butterflies when lsize = 0 and days = 0 would be exp(3.775) or about 43 butterflies when size = 1 (logsize = 0).
+
+$\beta_1$ is the effect of log of size of reserve on log of number of butterflies, while accounting for days of observation. On the original scale, this means that the median of {Number of butterflies|size} = exp(3.775)*size$^{0.0809}$, while accounting for number of day of observation.
+
+Alternatively, a 1% increase in ....
+
+$\beta_2$ is the effect of days of observation on log number of butterflies.  This means that doubling the number of days of observation will be associated with a multiplicative change of 2$^{.0774} in the median of number butterflies, while accounting for the size of the reserve.
+
 
 ```{r, echo = F}
+# slide 45, lecture 21
+# slide 3, lecture 19
 #2*pt(q = .7139, df = 13, lower.tail = FALSE)
 #pt(q= 0.7139, df = 13, lower.tail = FALSE)
 #2*pt(q = (0.0809 - 1)/.1131, df = 13, lower.tail = TRUE)
@@ -298,21 +316,252 @@ print(xtable(data.frame(sqrt(diag(ses)))), floating = F)
 
 ```
 
+# #5
+(a) Anova table for regression model
+```{r, echo = F, results="asis"}
 
-```{r, echo = F}
 foam <- read.csv("data/case0901.csv")
 foam$TIME <- as.factor(foam$Time)
-
+#plot(foam$Flowers~foam$Intensity, col = foam$TIME)
 modF <- lm(Flowers~TIME+Intensity, data = foam)
 #summary(modF)
 AF <- anova(modF)
+print(xtable(AF))
+```
+
+(b) Regression model with light as indicator
+
+```{r, echo = F, results="asis"}
+
 #summary(aov(modF))
 
 INTENSITY <- as.factor(foam$Intensity)
 modF1 <- lm(Flowers~TIME*INTENSITY, data = foam)
 #summary(modF1)
 AF1 <- anova(modF1)
-
-anova(modF, modF1)
+print(xtable(AF1))
 
 ```
+
+(c) Here is the extra sum-of-squares F-Test
+
+$H_0$: The reduced model is the best model
+
+$H_A$: The full model is significantly better at explaining the data
+
+From the table below, we fail to reject the null hypothesis that the reduced model is the best one. 
+
+```{r, echo = F, results = "asis"}
+SSRRed <- sum(modF$residuals^2)
+dfRed <- 21
+sigmaHat2Red <- 41.49
+
+SSRFull <- sum(modF1$residuals^2)
+dfFull <- 12
+sigmaHat2Full <- 7.393^2
+
+FStat <- ((SSRRed - SSRFull)/ (12 - 3)) / sigmaHat2Full
+
+#pf(FStat, df1 = 12-3, df2 = dfFull, lower.tail = F)
+
+print(xtable(anova(modF, modF1)))
+
+```
+
+
+
+
+
+
+
+
+
+
+\newpage
+# Code
+
+```{r, eval = F}
+##########1
+x <- matrix(c(rep(1, 10), 1:10), ncol = 2)
+x
+t(x)%*%x
+sum((x[,2])^2)
+
+10*mean(x[,2])^2
+xtxInv <- solve(t(x)%*%x)
+
+sum(x[,2]^2) / (10*sum(x[,2]^2) - 10^2*mean(x[,2])^2)
+
+
+55*55
+sum(x[,2]*x[,2])
+
+sum(x[,2]^2)
+10*mean(x[,2]^2)
+mean(x[,2]^2)
+
+y <- 1:10 * 2 + rnorm(10)
+summary(lm(y~x[,2]))
+plot(y~x[,2])
+xty <- t(x)%*%y
+10*mean(y)
+sum(x[,2]*y)
+
+solve(t(x)%*%x)%*%xty
+
+(10*mean(y)*sum(x[,2]^2) + sum(x[,2]*y)*-mean(x[,2])*10)/(10*sum(x[,2]^2) - 10^2 * mean(x)^2)
+
+xty[1,1]* xtxInv[1,1] + xty[2,1]* xtxInv[1,2]
+
+n <- 10
+ybar <- mean(y)
+xbar <- mean(x[,2])
+
+(ybar * sum(x[,2]^2) - xbar*sum(x[,2]*y))/(sum(x[,2]^2) - n * xbar^2)
+
+
+(-n*ybar*xbar + sum(x[,2]*y)) / (sum(x[,2]^2) - n * xbar^2)
+
+var(x[,2])
+sum((x[,2]-xbar)^2)/(10-1)
+
+sum(x[,2]^2)/10
+
+sum(x[,2]^2)
+xbar^2
+
+sum(x[,2]^2) / (10 * sum((x[,2] - xbar)^2))
+
+1/10 + xbar^2/((10-1)*(var(x[,2])))
+
+##########2a
+options(xtable.comment = FALSE)
+library(xtable)
+pace <- read.csv("data/ex0914.csv")
+library(ggplot2)
+pairs(pace, pch = 19)
+##########2b
+pmod <- lm(Heart~Bank + Walk + Talk, data = pace)
+px <- xtable(pmod, caption = "Least Squares Fit for linear regression of
+             heart on bank, walk, and talk")
+print(px)
+##########2ab
+pmoda <- lm(Heart~Walk*Bank, data = pace)
+px <- xtable(pmoda, caption = "Least Squares Fit for linear regression of
+             heart on bank, walk, and interaction, bank*walk")
+print(px)
+##########2b
+Heart <- pace$Heart
+Bank.Centered <- pace$Bank - mean(pace$Bank)
+Walk.Centered <- pace$Walk - mean(pace$Walk)
+
+pmodc <- lm(Heart~Walk.Centered*Bank.Centered)
+#summary(pmodc)
+print(xtable(pmodc, caption = "Regression with centered Bank and Walk"))
+
+
+mean(pace$Walk)
+mean(pace$Bank)
+-27.4291 + 1.8487*mean(pace$Walk) + 1.3961 *mean(pace$Bank) + -0.0515*mean(pace$Walk)*mean(pace$Bank)
+
+1.8487*mean(pace$Walk) - -0.0515*mean(pace$Walk)*mean(pace$Bank)
+
+-27.4291 +1.84*mean(pace$Walk) + 1.39 * mean(pace$Bank) + -0.0515*mean(pace$Walk)*mean(pace$Bank)
+
+1.8487 + -0.0515*mean(pace$Bank)
+
+1.39 + -0.0515*mean(pace$Walk)
+##########3a
+stuff <- 2*pt(q = (0.0809 - 1)/.1131, df = 13, lower.tail = TRUE)
+round(stuff, 7)
+
+# slide 45, lecture 21
+# slide 3, lecture 19
+#2*pt(q = .7139, df = 13, lower.tail = FALSE)
+#pt(q= 0.7139, df = 13, lower.tail = FALSE)
+#2*pt(q = (0.0809 - 1)/.1131, df = 13, lower.tail = TRUE)
+#qt(0.975, df = 13)
+
+##########4a
+sea <- read.csv("data/ex1026.csv")
+#head(sea)
+modS <- lm(Inhibit~UVB + Surface + UVB:Surface, dat = sea)
+
+plot(Inhibit~UVB, col = c("grey", "black")[Surface], pch = 19, dat = sea, bty = "l")
+legend("topleft", legend = c("Deep","Surface"), col = c("grey", "black"), pch = 19)
+# line for the surface
+abline(a = 1.181 + 1.278, b = 1226.389 + -939.931, col = "black")
+
+# line for the deep
+abline(a = 1.181, b = 1226.389, col = "grey")
+#points(sea$Inhibit[ sea$Surface == "Surface"]~sea$UVB[sea$Surface == "Surface"], col = "red", pch = 19)
+
+#ggplot(sea, aes(x = UVB, y =Inhibit)) + 
+#     geom_point(aes(color = Surface))
+
+print(xtable(modS, caption = "Multiple regression for UVB and Depth vs. Inhibition"))
+
+##########4b
+par(mfrow = c(1,2))
+plot(modS, which = 1:2)
+par(mfrow = c(1,1))
+##########4c
+soredRes <- sort(abs(modS$residuals), decreasing = T)
+top4 <- as.numeric(names(soredRes[1:4]))
+atb <- xtable(table(number = sea$Surface[top4]), caption = 
+                  "Number of residuals in each group, out of the top four")
+print(atb, floating = F)
+##########4d
+print("Here is the design matrix")
+X <- data.frame(x0 = rep(1, nrow(sea)), xi1 = sea$UVB, xi2 = -1 + as.numeric(sea$Surface), xi3 = I((-1 + as.numeric(sea$Surface))*sea$UVB))
+# note: deep = 0, and surface = 1
+#X
+print(xtable(as.matrix(X), caption = "Design matrix for Ozone Layer Study"), floating = F)
+Y <- data.frame(Y = sea$Inhibit)
+print("Here is the Y vector")
+print(xtable(Y), floating = F)
+
+X <- as.matrix(X)
+Y <- as.matrix(Y)
+
+print("Here are my results for $(X^{T} X)^{-1} X^{T} Y$. These results are the same as the estimates above in Table 4")
+print(xtable(solve(t(X)%*%X)%*%t(X)%*%Y), floating = F)
+##########4e
+ses <- (sum(modS$residuals^2)/(length(Y) - 4))*solve(t(X)%*%X)
+print(xtable(data.frame(sqrt(diag(ses)))), floating = F)
+
+##########5a
+foam <- read.csv("data/case0901.csv")
+foam$TIME <- as.factor(foam$Time)
+#plot(foam$Flowers~foam$Intensity, col = foam$TIME)
+modF <- lm(Flowers~TIME+Intensity, data = foam)
+#summary(modF)
+AF <- anova(modF)
+print(xtable(AF))
+##########5b
+
+#summary(aov(modF))
+
+INTENSITY <- as.factor(foam$Intensity)
+modF1 <- lm(Flowers~TIME*INTENSITY, data = foam)
+#summary(modF1)
+AF1 <- anova(modF1)
+print(xtable(AF1))
+
+########## 5c
+SSRRed <- sum(modF$residuals^2)
+dfRed <- 21
+sigmaHat2Red <- 41.49
+
+SSRFull <- sum(modF1$residuals^2)
+dfFull <- 12
+sigmaHat2Full <- 7.393^2
+
+FStat <- ((SSRRed - SSRFull)/ (12 - 3)) / sigmaHat2Full
+
+#pf(FStat, df1 = 12-3, df2 = dfFull, lower.tail = F)
+
+print(xtable(anova(modF, modF1)))
+
+```
+

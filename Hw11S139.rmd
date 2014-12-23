@@ -1,0 +1,847 @@
+---
+title: "HW 11 Stat 139"
+author: "Callin Switzer"
+date: "November 25, 2014"
+output: pdf_document
+---
+
+# #1
+### (#10(a-d))
+
+Here are the formulas I used for calculations.
+
+$\hat{\sigma}^2$ = Residual SS / d.f.
+
+$\hat{\sigma}$ is the "Residual standard error" from the lm() function
+
+Adj$R^2$ = 100*((total mean square) - (residual mean square))/total mean square
+
+Cp = p + (n-p)$\frac{\hat{\sigma^2} - \hat{\sigma^2_{full}}}{\hat{\sigma^2_{full}}}$
+
+BIC = n log(SSRes / n) + p log(n)
+
+*Note: R calculates BIC with this formula: $BIC = n + n \dot log (2\pi) + n log(RSS/n) + log (n)(p + 1)$*
+```{r, echo = F, results = "asis"}
+options(xtable.comment = FALSE)
+library(xtable)
+
+variables <- c("None", "A", "B", "C", "AB", "AC", "BC", "ABC")
+ResidSS <- c(8100, 6240, 5980, 6760, 5500, 5250, 5750, 5160)
+df <- c(27, 26, 26,26,25,25,25,24)
+
+sigmaSq <- ResidSS/df
+AdjRSq <- (ResidSS[1]/df[1] - ResidSS/df)/(ResidSS[1]/df[1])
+
+p <- c(1,2,2,2,3,3,3,4) # number of regression coefs
+n <- 28
+Cp <- p + (n-p)*(sigmaSq - sigmaSq[1])/(sigmaSq[1])
+BIC <- n*log(ResidSS / n) + p * log(n)
+#n*log(sigmaSq) + p * log(n) # formula from book is slightly different
+
+myDF <- data.frame(variables, ResidSS, df, sigmaSq, AdjRSq, Cp, BIC)
+print(xtable(myDF, caption = "Parts A-D"))
+
+# x <- rnorm(28,100)
+# y <- x + rnorm(28, 100, 16)
+# 
+# plot(y~x)
+# 
+# foo <- lm(y~x)
+# foo1 <- lm(y~1)
+# summary(foo)
+# 
+# # how to calculate residual standard error
+# sqrt(sum((foo$residuals^2)/(length(foo$residuals)-length(foo$coefficients))))
+# summary(foo)
+# summary(foo1)
+# sum(foo$residuals^2)
+# BIC(foo)
+# n*log(18.06^2) + 2*log(n)
+# 
+# ## this is the formula for BIC in R
+# ## which agrees with this description: http://www.stat.wisc.edu/courses/st333-larget/aic.pdf
+# ## BIC = n + n log 2*pi + n log(RSS/n) + (log n)(p + 1)
+# n+n*log(2*pi) + n * log(sum(foo$residuals^2)/n) + log(n)*(3)
+# 
+# 
+# ((8100/27 - 6240/26)/(8100/27))
+# sqrt(sum(foo$residuals^2)/98)
+# 
+# # multiple R^2
+# (sum(foo1$residuals^2) - sum(foo$residuals^2))/sum(foo1$residuals^2)
+# 
+# # Adj R^2
+# (sum(foo1$residuals^2)/99 - sum(foo$residuals^2)/98)/(sum(foo1$residuals^2)/99)
+# 
+# # Adjusted R^2 in R
+# 1-(1-(sum(foo1$residuals^2) - sum(foo$residuals^2))/sum(foo1$residuals^2)) * (99/ 98)
+# 
+# .55332/16
+
+
+```
+
+### (#10e, i-iv)
+```{r, echo = F, results="asis"}
+tabb <- sapply(X=c("sigmaSq", "Cp", "BIC"), 
+       function(thing) {
+            as.character(myDF$variables[ myDF[thing] == min(myDF[thing])])
+            })
+BestCombo <- c(as.character(myDF$variables[ myDF["AdjRSq"] == max(myDF["AdjRSq"])]), tabb)
+
+names(BestCombo) <- c("max R^2", "min sigmaSq", " min Cp", "min BIC")
+
+print(xtable(data.frame(BestCombo), caption = "1e, part i-iv"))
+```
+
+\newpage
+
+### #11 (still part of #1)
+
+The F-statistic will be $\frac{ExtraSumOfSquares/ExtraDegreesOfFreedom}{\hat{\sigma}_{full}^2}$
+
+The Extra sum fo squares is = Residual Sum of squares (reduced) - Residual sum of Squares (full)
+
+The single-variable model with the smallest residual sum of squares is B.
+```{r, echo = F}
+Fpv <- pf(q = ((8100 - 5980)/1)/300, df1 = 1, df2 = 27, lower.tail = FALSE)
+
+Fpv2 <- pf(q = ((5980 - 5500)/1)/230, df1 = 1, df2 = 26, lower.tail = FALSE)
+```
+
+An F-statistic will be ((8100 - 5980)/1)/300 = `r ((8100 - 5980)/1)/300`.  We'll compare this to an F-distribution with numerator df =1 , and denominator df = 27. The p-value is `r Fpv`.
+
+Now we move on to the second step. AB is the two-variable model that includes B and has the lowest Residual Sum of Squares.  When we do an extra sum of squares F-test, the test statistic is ((5980 - 5500)/1)/230 = `r ((5980 - 5500)/1)/230`. We'll use an F-distribution with df1 = 1, and df2 = 26. the p-value is `r Fpv2`.  The F-statistic is also under 4, so we'll just keep the original model, B.  Notably, this is not the model with the lowest BIC that we found in the earlier part.
+
+
+
+# 2a
+
+To decide if variables need to be transfomed, I looked at the scatterplot matrix of all the continuous variables. I decided that Income2005 should be log-transformed. Some predictors that may need log transfomed included word, parag, and numer.  After considering them for transformation, I decided not to transform them. I decided to sqrt transform Income2005 after looking at the normal Q-Q plot for the model when Income2005 was sqrt transformed (shown below). 
+
+```{r, echo = F, fig.width=8, fig.height=8, cache = T, message = F}
+library(car)
+finc <- read.csv("data/ex1223.csv")
+finc$Race <- as.factor(finc$Race)
+#colnames(finc)
+# pairs(finc[,c("Educ","MotherEd", "FatherEd", "FamilyIncome78", "Science",
+#               "Arith", "Word", "Parag", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+#               "Elec", "AFQT", "Income2005")])
+
+
+# I just used a sample, so it wouldn't take so long!
+scatterplotMatrix(finc[sample(1:nrow(finc), 500),c("Educ","MotherEd", 
+                                                   "FatherEd", "FamilyIncome78", "Science",
+              "Arith", "Word", "Parag", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+              "Elec", "AFQT", "Income2005")], col = c("red", "blue", rgb(0,0,0,0.2)), pch = ".")
+
+# looks like we should square parag and sqrt income2005
+finc$SIncome2005 <- sqrt(finc$Income2005)
+finc$Par2 <- finc$Parag^2
+# 
+# 
+# scatterplotMatrix(finc[,c("Par2", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+#               "Elec", "AFQT", "SIncome2005")])
+
+```
+
+
+```{r, echo = F}
+vars <- c("Educ","MotherEd", "FatherEd", "FamilyIncome78", "Science",
+              "Arith", "Word", "Parag", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+              "Elec", "AFQT",  "Income2005")
+
+
+#paste(vars, collapse = "+")
+
+modM <- lm(sqrt(Income2005) ~ Educ+MotherEd+FatherEd+FamilyIncome78+
+                Educ+Science+Arith+Word+Parag+Numer+Coding+Auto+
+                Math+Mechanic+Elec+AFQT+Race, data = finc)
+par(mfrow = c(1,2))
+plot(modM, which = 1:2, col = rgb(0,0,0, 0.15), pch = 20)
+par(mfrow = c(1,1))
+
+# dat <-sqrt(finc$Income2005)
+# hist(dat, freq = FALSE, breaks = 100)
+# lines(x = seq(min(dat), max(dat), length = 100), y = dnorm(x = seq(min(dat), to = max(dat), length = 100), mean = mean(dat), sd = sd(dat)))
+
+```
+
+# #2b
+
+I first made the model with interaction terms, and I used sqrt transformed Income2005 (because that's what I decided on in part 2a).  I looked at the residual and normal Q-Q plots, and they looked somewhat troubling -- the residuals looked a bit fanned, and the Q-Q plot looked long-tailed (I didn't picture them below).  
+```{r, echo = F, results = "asis"}
+mod2b <- lm(sqrt(Income2005)~ Educ*Race,  data = finc)
+# par(mfrow = c(1,2))
+# plot(mod2b, which = 1:2)
+# par(mfrow = c(1,1))
+print(xtable(summary(mod2b), caption= "Model for 2b with interaction terms"))
+#mod2b$coefficients[2] + mod2b$coefficients[5]
+
+```
+
+The slope of the line when Race = 2 will be `r mod2b$coefficients[2] + mod2b$coefficients[5]`, which is the sum of the coefficients, Educ and Educ:Race2 from the table above.
+
+The slope of the line when Race = 3 will be `r mod2b$coefficients[2] + mod2b$coefficients[6]`, which is the sum of the coefficients, Educ and Educ:Race3 from the table above.
+
+\newpage
+
+Below, I redefine the reference level to be Race = 2 and rerun the regression so that R is automatically performing a t-test to compare the two slopes.
+
+```{r, echo = F, results = "asis"}
+#levels(finc$Race)
+finc$Race <- relevel(finc$Race, ref = "2")
+
+mod2bb <- lm(sqrt(Income2005)~ Educ*Race,  data = finc)
+print(xtable(summary(mod2bb), caption= "Model for 2b with interaction terms, and new reference level"))
+foo <- summary(mod2bb)
+# foo$coefficients[6, 4]
+```
+
+The table above shows that Race = 3 is not significantly different form Race = 2.  The p-value is `r foo$coefficients[6, 4]`
+
+
+# #2c
+
+Below is a table that shows the results for the significant terms after backward selection, based on AIC. 
+
+```{r, echo = F, message = F, results="asis", cache = TRUE}
+library(MASS)
+
+regDat <- finc[,2:22]
+FullMod <- lm(sqrt(Income2005) ~ .^2, regDat)
+backMod <- stepAIC(object = FullMod, direction = "backward", trace = FALSE)
+```
+
+```{r, echo = F}
+
+#bb <- step(object = FullMod, direction = "backward", trace = T)
+#print(xtable(backMod, caption = "Results from backward variable selection, based on AIC"))
+print(round(summary(backMod)$coefficients, 4))
+foo <- extractAIC(backMod)[[2]]
+print(paste("The AIC from this model is", round(foo,2)))
+
+```
+
+\newpage
+
+# #2d
+Here are the forward stepwise results:
+```{r, echo = F, cache = TRUE}
+IntOnlyMod <- lm(sqrt(Income2005) ~ 1, regDat)
+
+forMod <- step(IntOnlyMod, scope = list(upper = FullMod), direction = "forward", k = 2, trace = FALSE)
+print(round(summary(forMod)$coefficients, 4))
+
+print(paste("The AIC for the forward-selected model is", round(extractAIC(forMod)[[2]], 2)))
+
+```
+
+\newpage
+# #2e
+
+Here are the stepwise results:
+```{r, echo = F, cache=TRUE}
+MainMod <- lm(sqrt(Income2005)~., regDat)
+stepMod <- step(MainMod, scope = list(lower = IntOnlyMod, upper = FullMod), direction = "both", trace = F, k = 2)
+```
+
+```{r, echo = F}
+print(round(summary(stepMod)$coefficients, 4))
+print(paste("The AIC for the forward-selected model is", round(extractAIC(stepMod)[[2]], 2)))
+
+```
+
+# #2f
+I choose the model from the backward variable selection procedure.  It has the lowest AIC.  Below is a model check. Here are the assumptions of multiple regression: 
+1. Linearity
+2. Constant variance along the line(s)
+3. Normality of each subpopulation of responses 
+4. Independence:Location in relation to the mean cannot be predicted with knowledge of other responses
+5. Random sample
+
+The data do not fit the assumptions of normality and equal variance.  I can tell because the residual plot shows a bit of fanning, and the scale-location plot shows an increase in residuals.  The Normal Q-Q plot has points that don't line up along the line very well. Also, I'm not sure if a random sample was used.
+
+```{r, echo = F}
+par(mfrow = c(2,2))
+plot(backMod, which = 1:4, col = rgb(0,0,0, 0.15), pch = 20)
+par(mfrow = c(1,1))
+
+```
+
+
+# #2g
+
+Below are the 95% confidence and prediction intervals for the sqrt of income.  Since I was using sqrt of income2005 as a predictor, I squared the interval to get the correct interval for actual dollars. 
+```{r, echo = F}
+#summary(backMod)
+
+
+NewDataSet <- data.frame(Imagazine = 1, Inewspaper  = 1, Ilibrary = 1, 
+                         MotherEd = 12, FatherEd = 12, FamilyIncome78 = median(finc$FamilyIncome78), 
+                         Race = "3", Gender = "male", Educ = 12, Science = mean(finc$Science), 
+                         Arith = mean(finc$Arith), Word = mean(finc$Word), Parag = mean(finc$Parag), 
+                         Numer = mean(finc$Numer), Coding = mean(finc$Coding), Auto = mean(finc$Auto),
+                         Math = mean(finc$Auto), Mechanic = mean(finc$Mechanic), 
+                         Elec = mean(finc$Elec), AFQT = mean(finc$AFQT))
+
+
+ci <- predict(backMod, new = NewDataSet, interval="confidence", level = .95)
+print("Here is the 95% confidence interval for the mean")
+ci^2
+pii <- predict(backMod, new = NewDataSet, interval="predict", level = 0.95)
+print("Here is the 95% prediction interval")
+pii^2
+
+```
+
+
+\newpage
+
+# #3a
+
+I did an F-test on two models.  The full model contained all four components and the AFQT, and the reduced model contained only the AFQT (See handwritten paper for calculations).  I also checked my work with the anova() function.  Based on my results, I reject the null hypothesis that the reduced model with only AFQT is the best model.
+
+```{r, echo = F, results = "asis"}
+# word, parag, math, arith, AFQT
+
+Mod3aFull <- lm(sqrt(Income2005)~Word+Parag+Math+Arith+AFQT, data = finc)
+m3a <- summary(Mod3aFull)
+#m3a$sigma^2*2578
+print(paste("Sigma from the full model is",m3a$sigma, "with df =", m3a$df[2]))
+
+Mod3aReduced <- lm(sqrt(Income2005)~AFQT, data = finc)
+m3aR <- summary(Mod3aReduced)
+print(paste("Sigma from the reduced model is",m3aR$sigma, "with df =", m3aR$df[2]))
+ESS <- (m3aR$sigma^2*2582) - (m3a$sigma^2*2578)
+
+FStat <- (ESS/4)/(m3a$sigma^2)
+
+#pf(q = 18.511, df1 = 4, df2 = 2578, lower.tail = F)
+
+print("Here is the anova table to compare with my calculations:")
+print(xtable(anova(Mod3aReduced, Mod3aFull)))
+
+```
+
+# #3b
+
+I used an F-test to compare the two models -- the full model contained the four components and the AFQT, and the reduced model contained only the four components. I didn't need to conduct an F-test in this case, because I found in part 3a that the four components were useful predictors (more useful that AFQT alone). Below is the results from my model comparison.  I fail to reject the null hypothesis that the reduced model is sufficient.
+
+```{r, echo = F, results = "asis"}
+Mod3bFull <- lm(sqrt(Income2005)~Word+Parag+Math+Arith+AFQT, data = finc)
+
+Mod3bReduced <- lm(sqrt(Income2005)~Word+Parag+Math+Arith, data = finc)
+
+print(xtable(anova(Mod3bReduced, Mod3bFull)))
+
+```
+
+
+# #3c
+
+Below, I've printed tables for the regressions and a scatterplot matrix to show that the components are all correlated with AFQT.  The scatterplot matrix shows why the SE and estimated slope of AFQT differ so much when the four components are added: the four components are all correlated, and they're correlated with AFQT quite strongly.  When explanatory variables are multicollinear, then the estimates and SEs can differ drastically when you include or exclude those variables.
+
+```{r, echo = F, results = "asis"}
+library(car)
+print(xtable(summary(Mod3bFull)), floating = F)
+print(xtable(summary(Mod3aReduced)), floating = F)
+
+scatterplotMatrix(finc[c("Word", "Parag", "Math", "Arith", "AFQT")], 
+                  col = c("red", "blue", rgb(0,0,0,0.05)), pch = 20)
+```
+
+
+# #3d
+
+Here is the regression:
+```{r, echo = F, results='asis'}
+tolReg <- lm(AFQT~Word+Parag+Math+Arith, data = finc)
+fo <- summary(tolReg)
+print(xtable(fo), floating = F)
+
+
+tolerance <- 1-fo$r.squared
+vifF <- 1/tolerance
+
+#vif(Mod3bFull) this is true
+
+```
+
+The $R^2$ is `r round(fo$r.squared,3)`, and the tolerance is `r round(tolerance, 3)`.  The vif is 1/tolerance, which is `r round(vifF, 3)` for AFQT
+
+
+# 3e
+
+```{r, echo = F}
+varFull <- (summary(Mod3bFull)$coefficients[6,2])^2
+varRed <- (m3aR$coefficients[2,2])^2
+
+vb <- (varRed) * (vifF) * ((m3a$sigma)^2/(m3aR$sigma)^2)
+
+
+```
+
+$Var(\hat{\beta}_j^{full})$ = `r varFull`
+
+$Var(\hat{\beta}_j^{red})$ = `r varRed`
+
+$MSR_{X_j}$ = `r ((m3a$sigma)^2/(m3aR$sigma)^2)`
+
+$VIF_{X_j}$ = `r vifF`
+
+$Var(\hat{\beta}_j^{red})$ * $MSR_{X_j}$ * $VIF_{X_j}$ = `r vb` which is the same as $Var(\hat{\beta}_j^{full})$
+
+# #3f
+Yes, we can approximate the relationship between AFQT and the components.
+
+# #3fi
+```{r, echo = F}
+library(leaps)
+#AFQT~Word+Parag+Math+Arith, data = finc)
+dat3f <- finc[c("AFQT", "Word", "Parag", "Math", "Arith")]
+mod3fi <- lm(AFQT~ . ^2 + I(Word^2) + I(Parag^2) + I(Math^2) + I(Arith^2), data = dat3f)
+# length(mod3fi$coefficients)
+
+# Calculating total number of models
+K = 4 # number of variables
+p = 15 # total numer of parameters in max model
+numx <- function(p = 1){
+     sum(sapply(X = 0:K, FUN = function(x){
+     choose(K, x) * choose(choose(x+1, 2), p-1-x)
+}))}
+
+#sum(sapply(1:15, numx))
+
+
+```
+The SSOM has `r length(mod3fi$coefficients)` parameters (not including $\hat{\sigma}$)
+
+
+# #3fii
+
+According to the formula in the book, there are `r sum(sapply(1:15, numx))` possible heriarchical models if we consider all first and second-order terms and interactions.
+
+If we're not considering any interactions, the total number of models becomes `r sum(sapply(1:8, numx))`
+
+
+# #3fii
+
+
+```{r, echo = F, results = "asis"}
+leaps <- regsubsets(AFQT~ . ^2 + I(Word^2) + I(Parag^2) + I(Math^2) + I(Arith^2), data = dat3f, nbest=5, nvmax = 15, method = "exhaustive")
+foo <- summary(leaps, matrix.logical = T, scale = "adjr2")
+fdf <- data.frame(foo$outmat)
+
+print("Here is the model with highest adj R^2 value")
+print(xtable(t(fdf[foo$adjr2 == max(foo$adjr2), ])))
+```
+
+
+I used the regsubsets() function to find a list of models.  I started by looking at the one with the max adjr2 value.  This model was heirarchical, and it's $R^2_{adj}$ is `r max(foo$adjr2)`
+
+
+# #3fiv
+
+Here is a summary of the best model.
+
+```{r, echo = F, results = "asis"}
+bestMod <- lm(AFQT~Word+Parag*Math + Parag*Arith+Math*Arith+Word*Arith + I(Word^2) + I(Math^2) + I(Arith^2)  + I(Parag^2), data = dat3f)
+print(xtable(summary(bestMod)), floating = F)
+
+toe <- summary(bestMod)
+cofs <- toe$coefficients[,1]
+cofs <- round(cofs, 3)
+```
+
+Here is the fitted equation:
+
+E{AFQT| Work, Parag, Math, Arith} = `r cofs[1]` + `r cofs[2]` * Word + `r cofs[3]` * Parag + `r cofs[4]` * Math + `r cofs[5]` * Arith + `r cofs[6]` * $Word^2$ + `r cofs[7]` * $Math^2$ + `r cofs[8]` * $Arith^2$ + `r cofs[9]` * $Parag^2$ + `r cofs[10]` * Parag * Math + `r cofs[11]` * Parag * Arith + `r cofs[12]` * Math * Arith + `r cofs[13]` * Word * Arith
+
+
+
+# #4a
+(ex. 13, from ch.12)
+
+I think that there is a danger of using variable selection techniques.
+
+```{r, echo = F}
+Y <- rnorm(100)
+X <- sapply(1:10, function(o) rnorm(100))
+df <- as.data.frame(cbind(Y, X))
+colnames(df) = c("Y", paste("X", 1:10, sep = ""))
+
+#head(df)
+
+mod4 <- lm(Y~., data = df)
+md <- summary(mod4)
+
+```
+
+The $R^2$ is  `r md$r.squared`.
+
+
+# #4b
+
+This model is suggested by forward selection:
+
+```{r, echo = F, results='asis'}
+intMod <- lm(Y~1, data = df)
+forMod <- step(object = intMod, scope = list(upper = mod4), direction = "forward",k = 2, trace =F)
+print(xtable(forMod), floating = F)
+
+
+```
+
+
+# #4c
+
+The model with the following X's has the smallest Cp Statistic:
+```{r, echo = F, results='asis'}
+leaps4 <- regsubsets(Y~ . , data =df, nbest=5, nvmax = 15, method = "exhaustive")
+#plot((leaps4), scale = "Cp")
+fo <- summary(leaps4, scale = "Cp", matrix.logical = T)
+fodf <- as.data.frame(fo$outmat)
+print(xtable(t(fodf[fo$cp == min(fo$cp), ])), floating = F)
+```
+
+
+# #4d
+
+The model with the following X's has the smallest BIC:
+```{r, echo = F, results='asis'}
+fo <- summary(leaps4, scale = "bic", matrix.logical = T)
+fodf <- as.data.frame(fo$outmat)
+print(xtable(t(fodf[fo$bic == min(fo$bic), ])))
+```
+
+# #4e
+
+There is danger in using variable selection techniques -- you'll get significant results due to chance. As shown above, we know that the data are independent, yet there are still some variables that seem significant.  If we use variable selection techniques, we risk getting meaningless results.
+
+
+\newpage
+
+# Code
+
+```{r, eval = F}
+# #1
+options(xtable.comment = FALSE)
+library(xtable)
+
+variables <- c("None", "A", "B", "C", "AB", "AC", "BC", "ABC")
+ResidSS <- c(8100, 6240, 5980, 6760, 5500, 5250, 5750, 5160)
+df <- c(27, 26, 26,26,25,25,25,24)
+
+sigmaSq <- ResidSS/df
+AdjRSq <- (ResidSS[1]/df[1] - ResidSS/df)/(ResidSS[1]/df[1])
+
+p <- c(1,2,2,2,3,3,3,4) # number of regression coefs
+n <- 28
+Cp <- p + (n-p)*(sigmaSq - sigmaSq[1])/(sigmaSq[1])
+BIC <- n*log(ResidSS / n) + p * log(n)
+#n*log(sigmaSq) + p * log(n) # formula from book is slightly different
+
+myDF <- data.frame(variables, ResidSS, df, sigmaSq, AdjRSq, Cp, BIC)
+print(xtable(myDF, caption = "Parts A-D"))
+
+# x <- rnorm(28,100)
+# y <- x + rnorm(28, 100, 16)
+# 
+# plot(y~x)
+# 
+# foo <- lm(y~x)
+# foo1 <- lm(y~1)
+# summary(foo)
+# 
+# # how to calculate residual standard error
+# sqrt(sum((foo$residuals^2)/(length(foo$residuals)-length(foo$coefficients))))
+# summary(foo)
+# summary(foo1)
+# sum(foo$residuals^2)
+# BIC(foo)
+# n*log(18.06^2) + 2*log(n)
+# 
+# ## this is the formula for BIC in R
+# ## which agrees with this description: http://www.stat.wisc.edu/courses/st333-larget/aic.pdf
+# ## BIC = n + n log 2*pi + n log(RSS/n) + (log n)(p + 1)
+# n+n*log(2*pi) + n * log(sum(foo$residuals^2)/n) + log(n)*(3)
+# 
+# 
+# ((8100/27 - 6240/26)/(8100/27))
+# sqrt(sum(foo$residuals^2)/98)
+# 
+# # multiple R^2
+# (sum(foo1$residuals^2) - sum(foo$residuals^2))/sum(foo1$residuals^2)
+# 
+# # Adj R^2
+# (sum(foo1$residuals^2)/99 - sum(foo$residuals^2)/98)/(sum(foo1$residuals^2)/99)
+# 
+# # Adjusted R^2 in R
+# 1-(1-(sum(foo1$residuals^2) - sum(foo$residuals^2))/sum(foo1$residuals^2)) * (99/ 98)
+# 
+# .55332/16
+
+
+### (#10e, i-iv)
+
+tabb <- sapply(X=c("sigmaSq", "Cp", "BIC"), 
+       function(thing) {
+            as.character(myDF$variables[ myDF[thing] == min(myDF[thing])])
+            })
+BestCombo <- c(as.character(myDF$variables[ myDF["AdjRSq"] == max(myDF["AdjRSq"])]), tabb)
+
+names(BestCombo) <- c("max R^2", "min sigmaSq", " min Cp", "min BIC")
+
+print(xtable(data.frame(BestCombo), caption = "1e, part i-iv"))
+
+### #11 (still part of #1)
+
+Fpv <- pf(q = ((8100 - 5980)/1)/300, df1 = 1, df2 = 27, lower.tail = FALSE)
+
+Fpv2 <- pf(q = ((5980 - 5500)/1)/230, df1 = 1, df2 = 26, lower.tail = FALSE)
+
+# 2a
+
+library(car)
+finc <- read.csv("data/ex1223.csv")
+finc$Race <- as.factor(finc$Race)
+#colnames(finc)
+# pairs(finc[,c("Educ","MotherEd", "FatherEd", "FamilyIncome78", "Science",
+#               "Arith", "Word", "Parag", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+#               "Elec", "AFQT", "Income2005")])
+
+
+# I just used a sample, so it wouldn't take so long!
+scatterplotMatrix(finc[sample(1:nrow(finc), 500),c("Educ","MotherEd", 
+                                                   "FatherEd", "FamilyIncome78", "Science",
+              "Arith", "Word", "Parag", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+              "Elec", "AFQT", "Income2005")], col = c("red", "blue", rgb(0,0,0,0.2)), pch = ".")
+
+# looks like we should square parag and sqrt income2005
+finc$SIncome2005 <- sqrt(finc$Income2005)
+finc$Par2 <- finc$Parag^2
+
+vars <- c("Educ","MotherEd", "FatherEd", "FamilyIncome78", "Science",
+              "Arith", "Word", "Parag", "Numer", "Coding", "Auto", "Math", "Mechanic", 
+              "Elec", "AFQT",  "Income2005")
+
+
+#paste(vars, collapse = "+")
+
+modM <- lm(sqrt(Income2005) ~ Educ+MotherEd+FatherEd+FamilyIncome78+
+                Educ+Science+Arith+Word+Parag+Numer+Coding+Auto+
+                Math+Mechanic+Elec+AFQT+Race, data = finc)
+par(mfrow = c(1,2))
+plot(modM, which = 1:2, col = rgb(0,0,0, 0.15), pch = 20)
+par(mfrow = c(1,1))
+
+# dat <-sqrt(finc$Income2005)
+# hist(dat, freq = FALSE, breaks = 100)
+# lines(x = seq(min(dat), max(dat), length = 100), y = dnorm(x = seq(min(dat), to = max(dat), length = 100), mean = mean(dat), sd = sd(dat)))
+
+# #2b
+
+mod2b <- lm(sqrt(Income2005)~ Educ*Race,  data = finc)
+# par(mfrow = c(1,2))
+# plot(mod2b, which = 1:2)
+# par(mfrow = c(1,1))
+print(xtable(summary(mod2b), caption= "Model for 2b with interaction terms"))
+#mod2b$coefficients[2] + mod2b$coefficients[5]
+#levels(finc$Race)
+finc$Race <- relevel(finc$Race, ref = "2")
+
+mod2bb <- lm(sqrt(Income2005)~ Educ*Race,  data = finc)
+print(xtable(summary(mod2bb), caption= "Model for 2b with interaction terms, and new reference level"))
+foo <- summary(mod2bb)
+# foo$coefficients[6, 4]
+
+# #2c
+
+library(MASS)
+
+regDat <- finc[,2:22]
+FullMod <- lm(sqrt(Income2005) ~ .^2, regDat)
+backMod <- stepAIC(object = FullMod, direction = "backward", trace = FALSE)
+
+
+#bb <- step(object = FullMod, direction = "backward", trace = T)
+#print(xtable(backMod, caption = "Results from backward variable selection, based on AIC"))
+print(round(summary(backMod)$coefficients, 4))
+foo <- extractAIC(backMod)[[2]]
+print(paste("The AIC from this model is", round(foo,2)))
+
+# #2d
+
+IntOnlyMod <- lm(sqrt(Income2005) ~ 1, regDat)
+
+forMod <- step(IntOnlyMod, scope = list(upper = FullMod), direction = "forward", k = 2, trace = FALSE)
+print(round(summary(forMod)$coefficients, 4))
+
+print(paste("The AIC for the forward-selected model is", round(extractAIC(forMod)[[2]], 2)))
+
+# #2e
+
+MainMod <- lm(sqrt(Income2005)~., regDat)
+stepMod <- step(MainMod, scope = list(lower = IntOnlyMod, upper = FullMod), direction = "both", trace = F, k = 2)
+
+print(round(summary(stepMod)$coefficients, 4))
+print(paste("The AIC for the forward-selected model is", round(extractAIC(stepMod)[[2]], 2)))
+
+# #2f
+
+par(mfrow = c(2,2))
+plot(backMod, which = 1:4, col = rgb(0,0,0, 0.15), pch = 20)
+par(mfrow = c(1,1))
+
+# #2g
+
+#summary(backMod)
+
+
+NewDataSet <- data.frame(Imagazine = 1, Inewspaper  = 1, Ilibrary = 1, 
+                         MotherEd = 12, FatherEd = 12, FamilyIncome78 = median(finc$FamilyIncome78), 
+                         Race = "3", Gender = "male", Educ = 12, Science = mean(finc$Science), 
+                         Arith = mean(finc$Arith), Word = mean(finc$Word), Parag = mean(finc$Parag), 
+                         Numer = mean(finc$Numer), Coding = mean(finc$Coding), Auto = mean(finc$Auto),
+                         Math = mean(finc$Auto), Mechanic = mean(finc$Mechanic), 
+                         Elec = mean(finc$Elec), AFQT = mean(finc$AFQT))
+
+
+ci <- predict(backMod, new = NewDataSet, interval="confidence", level = .95)
+print("Here is the 95% confidence interval for the mean")
+ci^2
+pii <- predict(backMod, new = NewDataSet, interval="predict", level = 0.95)
+print("Here is the 95% prediction interval")
+pii^2
+
+# #3a
+
+Mod3aFull <- lm(sqrt(Income2005)~Word+Parag+Math+Arith+AFQT, data = finc)
+m3a <- summary(Mod3aFull)
+#m3a$sigma^2*2578
+print(paste("Sigma from the full model is",m3a$sigma, "with df =", m3a$df[2]))
+
+Mod3aReduced <- lm(sqrt(Income2005)~AFQT, data = finc)
+m3aR <- summary(Mod3aReduced)
+print(paste("Sigma from the reduced model is",m3aR$sigma, "with df =", m3aR$df[2]))
+ESS <- (m3aR$sigma^2*2582) - (m3a$sigma^2*2578)
+
+FStat <- (ESS/4)/(m3a$sigma^2)
+
+#pf(q = 18.511, df1 = 4, df2 = 2578, lower.tail = F)
+
+print("Here is the anova table to compare with my calculations:")
+print(xtable(anova(Mod3aReduced, Mod3aFull)))
+
+# #3b
+
+Mod3bFull <- lm(sqrt(Income2005)~Word+Parag+Math+Arith+AFQT, data = finc)
+
+Mod3bReduced <- lm(sqrt(Income2005)~Word+Parag+Math+Arith, data = finc)
+
+print(xtable(anova(Mod3bReduced, Mod3bFull)))
+
+# #3c
+
+library(car)
+print(xtable(summary(Mod3bFull)), floating = F)
+print(xtable(summary(Mod3aReduced)), floating = F)
+
+scatterplotMatrix(finc[c("Word", "Parag", "Math", "Arith", "AFQT")], 
+                  col = c("red", "blue", rgb(0,0,0,0.05)), pch = 20)
+
+# #3d
+
+tolReg <- lm(AFQT~Word+Parag+Math+Arith, data = finc)
+fo <- summary(tolReg)
+print(xtable(fo), floating = F)
+
+
+tolerance <- 1-fo$r.squared
+vifF <- 1/tolerance
+
+#vif(Mod3bFull) this is true
+
+# 3e
+
+varFull <- (summary(Mod3bFull)$coefficients[6,2])^2
+varRed <- (m3aR$coefficients[2,2])^2
+
+vb <- (varRed) * (vifF) * ((m3a$sigma)^2/(m3aR$sigma)^2)
+
+
+# #3f
+
+
+# #3fi
+
+library(leaps)
+#AFQT~Word+Parag+Math+Arith, data = finc)
+dat3f <- finc[c("AFQT", "Word", "Parag", "Math", "Arith")]
+mod3fi <- lm(AFQT~ . ^2 + I(Word^2) + I(Parag^2) + I(Math^2) + I(Arith^2), data = dat3f)
+# length(mod3fi$coefficients)
+
+# Calculating total number of models
+K = 4 # number of variables
+p = 15 # total numer of parameters in max model
+numx <- function(p = 1){
+     sum(sapply(X = 0:K, FUN = function(x){
+     choose(K, x) * choose(choose(x+1, 2), p-1-x)
+}))}
+
+#sum(sapply(1:15, numx))
+
+
+# #3fii
+
+leaps <- regsubsets(AFQT~ . ^2 + I(Word^2) + I(Parag^2) + I(Math^2) + I(Arith^2), data = dat3f, nbest=5, nvmax = 15, method = "exhaustive")
+foo <- summary(leaps, matrix.logical = T, scale = "adjr2")
+fdf <- data.frame(foo$outmat)
+
+print("Here is the model with highest adj R^2 value")
+print(xtable(t(fdf[foo$adjr2 == max(foo$adjr2), ])))
+
+# #3fiv
+
+bestMod <- lm(AFQT~Word+Parag*Math + Parag*Arith+Math*Arith+Word*Arith + I(Word^2) + I(Math^2) + I(Arith^2)  + I(Parag^2), data = dat3f)
+print(xtable(summary(bestMod)), floating = F)
+
+toe <- summary(bestMod)
+cofs <- toe$coefficients[,1]
+cofs <- round(cofs, 3)
+
+# #4a
+
+Y <- rnorm(100)
+X <- sapply(1:10, function(o) rnorm(100))
+df <- as.data.frame(cbind(Y, X))
+colnames(df) = c("Y", paste("X", 1:10, sep = ""))
+
+#head(df)
+
+mod4 <- lm(Y~., data = df)
+md <- summary(mod4)
+
+
+# #4b
+
+intMod <- lm(Y~1, data = df)
+forMod <- step(object = intMod, scope = list(upper = mod4), direction = "forward",k = 2, trace =F)
+print(xtable(forMod), floating = F)
+
+# #4c
+
+leaps4 <- regsubsets(Y~ . , data =df, nbest=5, nvmax = 15, method = "exhaustive")
+#plot((leaps4), scale = "Cp")
+fo <- summary(leaps4, scale = "Cp", matrix.logical = T)
+fodf <- as.data.frame(fo$outmat)
+print(xtable(t(fodf[fo$cp == min(fo$cp), ])), floating = F)
+
+# #4d
+
+fo <- summary(leaps4, scale = "bic", matrix.logical = T)
+fodf <- as.data.frame(fo$outmat)
+print(xtable(t(fodf[fo$bic == min(fo$bic), ])))
+```
+
